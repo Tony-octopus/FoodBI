@@ -1,0 +1,52 @@
+/* Global reset + design tokens.
+   Colour theme: neutral gray canvas with a single warm accent (orange) and a
+   supporting blue/green, kept consistent across the whole dashboard. */
+:root {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --ink: #1c2126;
+  --ink-soft: #4a545e;
+  --muted: #79838d;
+  --border: #e2e5e9;
+  --accent: #e8590c;
+  --accent-soft: #fbe6d8;
+  --blue: #0072b2;
+  --green: #2f8f5b;
+
+  --sans: 'Segoe UI', system-ui, Roboto, Helvetica, Arial, sans-serif;
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.04),
+    0 8px 24px -12px rgba(16, 24, 40, 0.18);
+
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+h1,
+h2 {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+}

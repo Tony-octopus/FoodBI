@@ -1,0 +1,212 @@
+================================================================================
+SEG3125 – Analysis and Design of User Interfaces
+Assignment 5 – Bilingual Interactive Dashboard
+REPORT
+================================================================================
+
+--------------------------------------------------------------------------------
+1. DESIGNER
+--------------------------------------------------------------------------------
+Name:            [YOUR NAME HERE]
+Student number:  [YOUR STUDENT NUMBER HERE]
+
+
+--------------------------------------------------------------------------------
+2. DASHBOARD GOAL + DATA
+--------------------------------------------------------------------------------
+Goal
+  "Canadian Food Price Tracker" is a small analytical dashboard that lets a
+  Canadian shopper answer two everyday questions at a glance:
+    (a) "Which grocery items changed the most in price recently?"
+    (b) "How has the price of the foods I care about moved over time?"
+  It is an analytical (not operational) dashboard in the sense of the NN/g
+  "Dashboards" article: a single-page, at-a-glance view meant to inform, not to
+  drive time-critical action.
+
+Domain / dataset
+  Domain:  Food prices (Consumer Price Index).
+  Source:  Statistics Canada, Table 18-10-0004-03,
+           "Consumer Price Index, monthly, percentage change, not seasonally
+           adjusted, Canada — Food." Release date 2026-06-22.
+           https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1810000403
+           (Original file used: 1810000403-eng.csv)
+
+Modifications done to the data
+  - The full StatCan table lists ~120 food sub-categories for the Canada
+    geography. I hand-picked a subset of 15 recognizable categories (Food,
+    Meat, Beef, Chicken, Milk, Butter, Cheese, Eggs, Bread, Apples, Bananas,
+    Tomatoes, Potatoes, Coffee, Fresh vegetables).
+  - For each category I copied, exactly as published, the CPI index value for
+    the three reference periods (May 2025, April 2026, May 2026) and the two
+    percentage-change columns (month-over-month and year-over-year).
+  - Categories using the 2002=100 base were kept so all series share one scale;
+    the extracted values live in src/data/foodData.js.
+  - I added French labels for each category (Statistics Canada terminology).
+  This is REAL data (not synthetic), so no synthetic-data disclaimer is needed;
+  the source is cited in the header and footnote of the dashboard.
+
+Inspiration
+  - Statistics Canada bilingual food-price pages (bilingual layout pattern).
+  - NN/g dashboard / 3Cs articles (chart choices and styling).
+
+
+--------------------------------------------------------------------------------
+3. REFLECTION / DESIGN
+--------------------------------------------------------------------------------
+
+(A) CHARTS
+  Two charts of DIFFERENT types were chosen, matching the NN/g "Choosing Chart
+  Types" guidance that bar and line charts rely on the pre-attentive attributes
+  of length and 2D position:
+
+  Chart 1 — Horizontal BAR chart: "price change by food category".
+    - A bar chart is ideal for comparing a single quantitative value (percent
+      change) across many categories; length is read pre-attentively.
+    - Horizontal orientation was chosen on purpose (Internationalization deck):
+      it accommodates long, variable-length category names in BOTH English and
+      French without truncation or rotated text.
+
+  Chart 2 — LINE chart: "price-index trend over the three reference periods".
+    - A line chart uses 2D position to show change over time, so trends and
+      crossovers read instantly.
+
+  Pie/donut/gauge/3D charts were deliberately avoided (the "Dashboards" article
+  shows area and angle are poor for quantitative comparison).
+
+(B) THE 3Cs
+  Context
+    - Each chart card opens with a plain-language sentence explaining what the
+      chart shows.
+    - Every chart has an ACTIVE, informative title that states the takeaway
+      rather than just naming the data. The bar-chart title is generated
+      dynamically, e.g. "Tomatoes led yearly food-price increases (+45.2%)".
+    - Axis labels give the unit (percent, or "Price index (2002 = 100)").
+    - A footnote clarifies that values are index points, not dollar prices.
+
+  Clutter-free (Tufte / NN/g "Clutter-Free Charts")
+    - Bar chart: NO gridlines, NO legend, NO chart frame. Values are printed as
+      data labels at the end of each bar, so axes become unnecessary.
+    - Line chart: only 4 light gridlines; NO legend — each series is labelled
+      DIRECTLY at the end of its line (also better for colour-blind users).
+    - No 3D, gradients, shadows, or decorative "chartjunk".
+
+  Contrast (NN/g "Contrast in Charts")
+    - "Start with gray": all bars are gray except the single most important
+      category, drawn in the accent orange and echoed by colour in the title.
+    - The line series use a colour-blind-aware qualitative palette (Okabe–Ito),
+      and colour is reinforced by direct text labels (never colour alone).
+
+(C) LAYOUT, TITLE, INTERACTIONS
+  - Single-page, two-card responsive layout (two columns on desktop, stacked on
+    mobile), with a clear app title, subtitle, and source line.
+  - Interactions (at least one per chart):
+      Bar chart: a segmented toggle switches the metric between Year-over-year
+                 and Month-over-month change; the chart re-sorts and the active
+                 title / highlighted bar update automatically.
+      Line chart: a checkbox grid (plus "Select all" / "Clear") lets the user
+                 choose exactly which foods to compare; the title updates with
+                 the count and an empty-state message appears if none selected.
+      Global:    the language selector re-renders the entire UI and both charts.
+
+(D) INTERNATIONALIZATION / LOCALIZATION
+  Languages
+    - English and French. English is treated as one language among two (not a
+      privileged "source"): both string sets live side-by-side in a
+      resource-style catalogue (src/i18n/strings.js).
+    - French translations were written using Statistics Canada terminology and
+      Google-Translate-level phrasing, as permitted by the assignment.
+
+  Language selection (per the Localization deck)
+    - Permanent, top-right, reachable without scrolling.
+    - NO national flags (a language is not a country); a neutral globe icon is
+      used instead.
+    - Bilingual convention: the control shows the OTHER language written in that
+      language (reads "Français" while in English, "English" while in French).
+    - document.documentElement.lang is updated so the browser/assistive tech
+      apply the correct locale.
+
+  What was localized (beyond text translation)
+    - Numbers: decimal separator differs by locale via Intl.NumberFormat
+      (e.g. 202.8 in en-CA vs 202,8 in fr-CA).
+    - Percentages: French inserts a space before "%" (e.g. "+45.2%" vs
+      "+45,2 %"); signed display keeps +/- meaning.
+    - Dates: reference periods are stored as ISO dates and rendered with
+      Intl.DateTimeFormat (e.g. "May 2026" vs "mai 2026", "Apr 2026" vs
+      "avr. 2026").
+    - Icons/images: the brand mark is a text-free SVG glyph (guideline: don't
+      embed text in images), and no flags are used for language.
+    - BOTH charts are fully bilingual (all in-chart text — titles, category
+      names, series labels, axis labels, tick numbers — switches language),
+      exceeding the "at least one chart" requirement.
+
+  Translation difficulties encountered (Translation deck)
+    - Text length variation: French labels are ~20–30% longer (e.g. "Bread,
+      rolls and buns" -> "Pain, petits pains et brioches"); the horizontal bar
+      layout and generous label column leave room for this.
+    - Acronyms: CPI -> IPC (Indice des prix à la consommation) in French.
+    - Punctuation: French requires a space before ":" and "%"; handled in the
+      strings and by Intl.
+    - Currency was NOT force-converted: the data is an index (2002=100), not a
+      dollar amount, so per the Localization deck we keep the source unit rather
+      than fake a currency symbol.
+
+  NOTE on resource files: the assignment states resource files are not
+  mandatory for this scope, but a resource-file pattern was still used
+  (i18n/strings.js) as recommended by the Internationalization deck.
+
+
+--------------------------------------------------------------------------------
+4. HIGH-FIDELITY PROTOTYPE
+--------------------------------------------------------------------------------
+Visual design choices
+  - Colour theme: neutral gray canvas + white surfaces, one warm accent
+    (orange #e8590c) used consistently for emphasis, with supporting blue and
+    green for series/branding. Consistent across header, controls, and charts.
+  - Typography: system sans; large bold app title and bold active chart titles
+    create clear visual hierarchy; muted grays for secondary text.
+  - Layout & negative space: card-based grid with generous padding and spacing
+    so each chart has room to breathe; responsive down to a single column.
+  - Gestalt: similarity (shared card style), proximity (controls grouped with
+    their chart), figure/ground (white cards on gray). Direct labelling instead
+    of legends supports "common region"/continuity.
+  - Usability heuristics: visibility of system status (active titles, live
+    counts, pressed-state toggles), match to real world (plain-language
+    titles), user control (toggle/checkboxes/clear), consistency, recognition
+    over recall (direct labels), aesthetic & minimalist design (clutter-free),
+    and accessibility (colour-blind-safe palette, aria labels, focus styles).
+
+Technical
+  - Built with React (Vite). Custom SVG chart components (no chart library) to
+    fully control the 3Cs and bilingual in-chart text.
+  - Files: src/App.jsx, src/components/{Dashboard,BarChart,LineChart,
+    LanguageSelector}.jsx, src/i18n/strings.js, src/utils/format.js,
+    src/data/foodData.js.
+  - Run locally: npm install && npm run dev  (build: npm run build).
+
+Link to portfolio:  [YOUR PORTFOLIO URL HERE]
+Link to hosted dashboard:  [YOUR HOSTED DASHBOARD URL HERE]
+
+
+--------------------------------------------------------------------------------
+5. CODE
+--------------------------------------------------------------------------------
+GitHub repository:  [YOUR GITHUB REPO URL HERE]
+
+
+--------------------------------------------------------------------------------
+6. GENERATIVE AI ACKNOWLEDGEMENT
+--------------------------------------------------------------------------------
+High-fidelity prototype:
+  - GenAI tool used: [e.g. GitHub Copilot / ChatGPT].
+  - Role: assisted in scaffolding the React components, the custom SVG bar/line
+    charts, the Intl-based localization utilities, and the bilingual string
+    catalogue. All data values were copied from the Statistics Canada table and
+    verified by hand; design decisions (chart types, 3Cs, colour theme,
+    interactions) were directed by the student.
+
+Report:
+  - GenAI tool used: [e.g. GitHub Copilot / ChatGPT].
+  - Role: helped organize and draft this report against the assignment’s
+    required structure; content reviewed and edited by the student.
+
+================================================================================
